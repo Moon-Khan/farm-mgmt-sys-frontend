@@ -6,13 +6,13 @@ export const STATUS_CONFIG = {
     dotColor: "bg-green-500",
     label: "Growing"
   },
-  ready: {
+  harvested: {
     bgColor: "bg-yellow-100",
     textColor: "text-yellow-700",
     dotColor: "bg-yellow-500",
     label: "Ready!"
   },
-  planted: {
+  planting: {
     bgColor: "bg-blue-100",
     textColor: "text-blue-700",
     dotColor: "bg-blue-500",

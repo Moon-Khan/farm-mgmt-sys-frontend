@@ -1,6 +1,6 @@
-import { mockWeather } from './mockData';
+// import { mockWeather } from './mockData';
 
-const API_BASE = "https://farm-mgmt-sys.onrender.com/v1";
+const API_BASE = "http://localhost:5000/v1";
 
 export async function fetchWeather() {
   try {
@@ -9,6 +9,5 @@ export async function fetchWeather() {
     return res.json();
   } catch (err) {
     console.error(err);
-    return mockWeather;
   }
 }

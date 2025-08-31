@@ -79,9 +79,7 @@ ActionButton.propTypes = {
 // Main PlotCard Component
 const PlotCard = ({ name, acres, crop, caretaker, status, nextTask, onWater, onTrack, onDetails, onMenuClick }) => {
   return (
-    <div className="bg-white border border-green-100 rounded-2xl shadow p-4 relative overflow-hidden">
-      {/* Green left border accent */}
-      <div className="absolute left-0 top-0 bottom-0 w-1 bg-green-500"></div>
+    <div className="bg-white border border-green-100 border-l-4 border-l-green-500 rounded-2xl shadow p-4 relative overflow-hidden">
       {/* Top row with name and status */}
       <div className="flex justify-between items-start gap-2 mb-2">
         <div className="flex items-center gap-2 flex-1">
