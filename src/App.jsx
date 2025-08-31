@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 
 // Pages
 import Dashboard from "./pages/Dashboard";
+import AddPlot from "./pages/AddPlot"; 
 // (You can later add: Plots, Schedule, Reports, Settings)
 
 // Layout Components
@@ -17,6 +18,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/add-plot" element={<AddPlot />} /> 
             {/* Placeholder routes for future pages */}
             <Route path="/plots" element={<div>Plots Page</div>} />
             <Route path="/schedule" element={<div>Schedule Page</div>} />

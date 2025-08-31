@@ -1,34 +1,95 @@
-// ...existing code...
 import React, { useEffect, useState } from "react";
 import SummaryCard from "../components/cards/SummaryCard";
 import WeatherCard from "../components/cards/WeatherCard";
 import PlotCard from "../components/cards/PlotCard";
-import { fetchPlots } from "../services/plotsService";
-import { fetchWeather } from "../services/weatherService";
+import { useDashboardData } from "../hooks/useDashboardData";
+import { LocationIcon, PlantIcon, ThermometerIcon, RainIcon } from "../components/icons/ProfessionalIcons";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
-  const [plots, setPlots] = useState([]);
-  const [weather, setWeather] = useState(null);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function loadData() {
-      setLoading(true);
 
-      const [plotsData, weatherData] = await Promise.all([
-        fetchPlots(),
-        fetchWeather(),
-      ]);
+  const navigate = useNavigate();
+  const { 
+    plots, 
+    weather, 
+    loading, 
+    error, 
+    pagination, 
+    refreshData, 
+    filterPlots 
+  } = useDashboardData({ limit: 20 });
+  
+  // Handler functions for plot actions
+  const handleWater = (plotId) => {
+    console.log(`Watering plot ${plotId}`);
+    // TODO: Implement watering functionality
+  };
 
-      setPlots(plotsData.plots || []);
-      setWeather(weatherData);
-      setLoading(false);
-    }
+  const handleTrack = (plotId) => {
+    console.log(`Tracking plot ${plotId}`);
+    // TODO: Implement tracking functionality
+  };
 
-    loadData();
-  }, []);
+  const handleDetails = (plotId) => {
+    console.log(`Viewing details for plot ${plotId}`);
+    // TODO: Navigate to plot details page
+  };
 
-  if (loading) return <div className="p-4">Loading Dashboard...</div>;
+  const handleMenuClick = (plotId) => {
+    console.log(`Menu clicked for plot ${plotId}`);
+    // TODO: Show plot options menu
+  };
+
+  const handleAddPlot = () => {
+    console.log('Add new plot');
+    // TODO: Navigate to add plot page or show modal
+
+    navigate('/add-plot');
+  };
+
+  const handleFilterByStatus = (status) => {
+    filterPlots({ status });
+  };
+
+  // Calculate total acres safely - updated for new data structure
+  const totalAcres = plots.length > 0 
+    ? plots.reduce((acc, plot) => acc + parseFloat(plot.acreage || 0), 0).toFixed(1)
+    : "0.0";
+
+  // Calculate active plots (plots with status 'growing' or 'planting')
+  const activePlots = plots.filter(plot => 
+    plot.status === 'growing' || plot.status === 'planting'
+  ).length;
+
+  if (loading) {
+    return (
+      <div className="p-4 flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading Dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Error Loading Data</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button 
+            onClick={() => refreshData()}
+            className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-0 md:p-4 bg-[#fcfcf7] min-h-screen">
@@ -42,102 +103,135 @@ const Dashboard = () => {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 px-2 md:px-0 mb-4">
-        <div className="bg-green-50 rounded-xl border border-green-100 shadow flex flex-col items-center py-4 px-2">
-          <div className="text-green-600 text-2xl mb-1"><span>📍</span></div>
-          <div className="text-[1.7rem] font-bold text-gray-800">{plots.reduce((acc, p) => acc + p.acres, 0).toFixed(1)}</div>
-          <div className="text-sm text-gray-500">Total Acres</div>
-        </div>
-        <div className="bg-yellow-50 rounded-xl border border-yellow-100 shadow flex flex-col items-center py-4 px-2">
-          <div className="text-yellow-600 text-2xl mb-1"><span>🌱</span></div>
-          <div className="text-[1.7rem] font-bold text-gray-800">{plots.length}</div>
-          <div className="text-sm text-gray-500">Active Plots</div>
-        </div>
-        <div className="bg-orange-50 rounded-xl border border-orange-100 shadow flex flex-col items-center py-4 px-2">
-          <div className="text-orange-600 text-2xl mb-1"><span>🌡️</span></div>
-          <div className="text-[1.7rem] font-bold text-gray-800">{weather?.temperature}°C</div>
-          <div className="text-sm text-gray-500">Temperature</div>
-        </div>
-        <div className="bg-blue-50 rounded-xl border border-blue-100 shadow flex flex-col items-center py-4 px-2">
-          <div className="text-blue-600 text-2xl mb-1"><span>🌧️</span></div>
-          <div className="text-[1.7rem] font-bold text-gray-800">{weather?.expectedRain}mm</div>
-          <div className="text-sm text-gray-500">Expected Rain</div>
-        </div>
+        <SummaryCard
+          icon={<LocationIcon className="w-6 h-6" color="#059669" />}
+          label="Total Acres"
+          value={totalAcres}
+          bgColor="bg-green-50 border border-green-100"
+        />
+        <SummaryCard
+          icon={<PlantIcon className="w-6 h-6" color="#D97706" />}
+          label="Active Plots"
+          value={activePlots}
+          bgColor="bg-yellow-50 border border-yellow-100"
+        />
+        <SummaryCard
+          icon={<ThermometerIcon className="w-6 h-6" color="#EA580C" />}
+          label="Temperature"
+          value={`${weather?.temperature || 0}°C`}
+          bgColor="bg-orange-50 border border-orange-100"
+        />
+        <SummaryCard
+          icon={<RainIcon className="w-6 h-6" color="#2563EB" />}
+          label="Expected Rain"
+          value={`${weather?.expectedRain || 0}mm`}
+          bgColor="bg-blue-50 border border-blue-100"
+        />
       </div>
 
       {/* Weather Update */}
       {weather && (
         <div className="px-2 md:px-0 mb-4">
-          <div className="bg-orange-50 border border-orange-200 rounded-2xl shadow flex items-center gap-3 p-4">
-            <div className="text-orange-400 text-2xl"><span>⚠️</span></div>
-            <div>
-              <div className="font-semibold text-orange-700 text-base">Weather Update</div>
-              <div className="text-sm text-gray-600">{weather.status}</div>
-              <div className="text-xs text-gray-500 mt-1 flex gap-4">
-                <span>Expected: <span className="font-semibold">{weather.expectedRain}mm</span></span>
-                <span>Humidity: <span className="font-semibold">{weather.humidity}%</span></span>
-              </div>
-            </div>
-          </div>
+          <WeatherCard
+            status={weather.status}
+            rain={weather.expectedRain}
+            humidity={weather.humidity}
+          />
         </div>
       )}
 
       {/* Your Plots */}
       <div className="px-2 md:px-0">
         <div className="flex justify-between items-center mb-3">
-          <h2 className="text-lg md:text-xl font-semibold text-gray-700">Your Plots</h2>
-          <button className="bg-green-600 hover:bg-green-700 transition text-white px-4 py-2 rounded-lg shadow flex items-center gap-1 text-sm">
+          <h2 className="text-lg md:text-xl font-semibold text-gray-700">
+            Your Plots ({pagination.total || plots.length})
+          </h2>
+          <button 
+            onClick={handleAddPlot}
+            className="bg-green-600 hover:bg-green-700 transition text-white px-4 py-2 rounded-lg shadow flex items-center gap-1 text-sm"
+          >
             <span className="text-lg">+</span> Add Plot
           </button>
         </div>
 
-        <div className="space-y-4">
-          {plots.map((plot) => (
-            <div key={plot.id} className="bg-white border border-green-100 rounded-2xl shadow p-4">
-              <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-green-600 text-xl">📍</span>
-                  <span className="font-semibold text-base md:text-lg text-gray-800">{plot.name}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className={`px-2 py-1 rounded-full text-xs font-semibold
-                    ${plot.status === "growing" ? "bg-green-100 text-green-700" : ""}
-                    ${plot.status === "ready" ? "bg-yellow-100 text-yellow-700" : ""}
-                  `}>
-                    {plot.status === "growing" ? <span>🟢 growing</span> : <span>⚡ ready</span>}
-                  </span>
-                  <button className="text-gray-400 hover:text-gray-600 px-2 py-1 rounded-full">
-                    <span className="text-lg">⋮</span>
-                  </button>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm text-gray-600 mt-2">
-                <div className="flex items-center gap-1"><span>📏</span> {plot.acres} acres</div>
-                <div className="flex items-center gap-1"><span>🌱</span> {plot.crop}</div>
-                <div className="flex items-center gap-1"><span>👨‍🌾</span> {plot.caretaker}</div>
-                <div className="flex items-center gap-1"><span>📅</span> <span className="font-semibold text-green-700">Ready!</span></div>
-              </div>
-              <div className="bg-orange-50 text-orange-700 text-sm rounded-md p-2 mt-3 flex items-center gap-2">
-                <span className="text-orange-400 text-lg">📋</span>
-                <span>Next: {plot.nextTask}</span>
-              </div>
-              <div className="flex flex-col md:flex-row justify-between gap-2 mt-3">
-                <button className="flex-1 bg-blue-50 text-blue-700 px-3 py-2 rounded-lg flex items-center justify-center gap-1 font-medium text-sm hover:bg-blue-100 transition">
-                  <span>⚡</span> Water
-                </button>
-                <button className="flex-1 bg-green-50 text-green-700 px-3 py-2 rounded-lg flex items-center justify-center gap-1 font-medium text-sm hover:bg-green-100 transition">
-                  <span>📈</span> Track
-                </button>
-                <button className="flex-1 bg-gray-50 text-gray-700 px-3 py-2 rounded-lg flex items-center justify-center gap-1 font-medium text-sm hover:bg-gray-100 transition">
-                  <span>📄</span> Details
-                </button>
-              </div>
-            </div>
-          ))}
+        {/* Filter Buttons */}
+        <div className="flex gap-2 mb-4 overflow-x-auto">
+          <button 
+            onClick={() => filterPlots({})}
+            className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-full transition whitespace-nowrap"
+          >
+            All
+          </button>
+          <button 
+            onClick={() => handleFilterByStatus('growing')}
+            className="px-3 py-1 text-sm bg-green-100 hover:bg-green-200 text-green-700 rounded-full transition whitespace-nowrap"
+          >
+            Growing
+          </button>
+          <button 
+            onClick={() => handleFilterByStatus('harvested')}
+            className="px-3 py-1 text-sm bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded-full transition whitespace-nowrap"
+          >
+            Harvested
+          </button>
+          <button 
+            onClick={() => handleFilterByStatus('planting')}
+            className="px-3 py-1 text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-full transition whitespace-nowrap"
+          >
+            Planting
+          </button>
         </div>
+
+        <div className="space-y-4">
+          {plots.length > 0 ? (
+            plots.map((plot) => (
+              <PlotCard
+                key={plot.id}
+                name={plot.name}
+                acres={parseFloat(plot.acreage)}
+                crop={plot.current_crop?.name || "N/A"}
+                caretaker={plot.caretaker?.name || "N/A"}
+                status={plot.status}
+                nextTask={plot.nextTask || "Monitor growth"}
+                onWater={() => handleWater(plot.id)}
+                onTrack={() => handleTrack(plot.id)}
+                onDetails={() => handleDetails(plot.id)}
+                onMenuClick={() => handleMenuClick(plot.id)}
+              />
+            ))
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <div className="text-6xl mb-4">🌱</div>
+              <h3 className="text-lg font-semibold mb-2">No plots found</h3>
+              <p className="mb-4">Get started by adding your first plot</p>
+              <button 
+                onClick={handleAddPlot}
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition"
+              >
+                Add Your First Plot
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Pagination Info */}
+        {pagination.totalPages > 1 && (
+          <div className="text-center mt-6 text-sm text-gray-500">
+            Showing {plots.length} of {pagination.total} plots
+            {pagination.page < pagination.totalPages && (
+              <button 
+                onClick={() => filterPlots({ page: pagination.page + 1 })}
+                className="ml-2 text-green-600 hover:text-green-700 font-medium"
+              >
+                Load More
+              </button>
+            )}
+          </div>
+        )}
       </div>
       <div className="h-16"></div> {/* Spacer for FooterNav */}
     </div>
   );
 };
 
-export default Dashboard;// ...existing code...
+export default Dashboard;
