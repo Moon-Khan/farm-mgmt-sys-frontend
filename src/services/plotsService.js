@@ -3,17 +3,6 @@ import { handleApiResponse } from './index';
 
 const API_BASE = "http://localhost:5000/v1";
 
-
-
-// Enhanced API response handler
-// const handleApiResponse = async (response) => {
-//   if (!response.ok) {
-//     const errorData = await response.json().catch(() => ({}));
-//     throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-//   }
-//   return response.json(); 
-// };
-
 // Get all plots with pagination and filtering
 export async function fetchPlots(params = {}) {
   try {

@@ -4,7 +4,16 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 // Pages
 import Dashboard from "./pages/Dashboard";
 import AddPlot from "./pages/AddPlot"; 
-// (You can later add: Plots, Schedule, Reports, Settings)
+import PlotsPage from "./pages/PlotsPage";
+import PlotDetailsPage from "./pages/PlotDetailsPage";
+import EditPlotPage from "./pages/EditPlotPage";
+import CropTimelinePage from "./pages/CropTimelinePage";
+import AddEventPage from "./pages/AddEventPage";
+import AddFertilizerPage from "./pages/AddFertilizerPage";
+import AddPesticidePage from "./pages/AddPesticidePage";
+import AddIrrigationPage from "./pages/AddIrrigationPage";
+import AddExpensePage from "./pages/AddExpensePage";
+import ReportsPage from "./pages/ReportsPage";
 
 // Layout Components
 import FooterNav from "./components/layout/FooterNav";
@@ -19,10 +28,18 @@ const App = () => {
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/add-plot" element={<AddPlot />} /> 
-            {/* Placeholder routes for future pages */}
-            <Route path="/plots" element={<div>Plots Page</div>} />
+            <Route path="/plots" element={<PlotsPage />} />
+            <Route path="/plots/:id" element={<PlotDetailsPage />} />
+            <Route path="/plots/:id/edit" element={<EditPlotPage />} />
+            <Route path="/plots/:id/timeline" element={<CropTimelinePage />} />
+            <Route path="/plots/:id/timeline/add-event" element={<AddEventPage />} />
+            <Route path="/plots/:id/add-lifecycle" element={<AddEventPage />} />
+            <Route path="/plots/:id/add-fertilizer" element={<AddFertilizerPage />} />
+            <Route path="/plots/:id/add-pesticide" element={<AddPesticidePage />} />
+            <Route path="/plots/:id/add-irrigation" element={<AddIrrigationPage />} />
+            <Route path="/plots/:id/add-expense" element={<AddExpensePage />} />
             <Route path="/schedule" element={<div>Schedule Page</div>} />
-            <Route path="/reports" element={<div>Reports Page</div>} />
+            <Route path="/reports" element={<ReportsPage />} />
             <Route path="/settings" element={<div>Settings Page</div>} />
           </Routes>
         </main>
