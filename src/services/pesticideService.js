@@ -15,7 +15,7 @@ export async function fetchPesticides() {
 
 export async function fetchPesticidesByPlot(plotId) {
   try {
-    const url = `${API_BASE}/pesticides?plot_id=${plotId}`;
+    const url = `${API_BASE}/pesticides/plot/${plotId}`;
     const response = await fetch(url);
     return await handleApiResponse(response);
   } catch (err) {

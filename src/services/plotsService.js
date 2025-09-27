@@ -3,6 +3,11 @@ import { handleApiResponse } from './index';
 
 const API_BASE = "http://localhost:5000/v1";
 
+function authHeaders() {
+  const token = localStorage.getItem('auth_token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 // Get all plots with pagination and filtering
 export async function fetchPlots(params = {}) {
   try {
@@ -20,7 +25,7 @@ export async function fetchPlots(params = {}) {
     if (params.current_crop_id) queryParams.append('current_crop_id', params.current_crop_id);
     
     const url = `${API_BASE}/plots${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    const response = await fetch(url);
+    const response = await fetch(url, { headers: { ...authHeaders() } });
     return await handleApiResponse(response);
   } catch (err) {
     console.error('Error fetching plots:', err);
@@ -31,7 +36,7 @@ export async function fetchPlots(params = {}) {
 // Get plot by ID
 export async function fetchPlotById(id) {
   try {
-    const response = await fetch(`${API_BASE}/plots/${id}`);
+    const response = await fetch(`${API_BASE}/plots/${id}`, { headers: { ...authHeaders() } });
     return await handleApiResponse(response);
   } catch (err) {
     console.error('Error fetching plot:', err);
@@ -46,6 +51,7 @@ export async function createPlot(plotData) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...authHeaders(),
       },
       body: JSON.stringify(plotData),
     });
@@ -63,6 +69,7 @@ export async function updatePlot(id, plotData) {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
+        ...authHeaders(),
       },
       body: JSON.stringify(plotData),
     });
@@ -78,6 +85,7 @@ export async function deletePlot(id) {
   try {
     const response = await fetch(`${API_BASE}/plots/${id}`, {
       method: 'DELETE',
+      headers: { ...authHeaders() },
     });
     return await handleApiResponse(response);
   } catch (err) {

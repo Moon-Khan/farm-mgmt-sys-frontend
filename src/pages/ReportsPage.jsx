@@ -24,32 +24,7 @@ const ReportsPage = () => {
       } catch (err) {
         console.error("Error loading reports data:", err);
         // Set default data if API fails
-        setReportsData({
-          financial: {
-            summary: {
-              totalRevenue: 20400,
-              totalExpenses: 10200,
-              netProfit: 10200,
-              revenueChange: '+12%',
-              expensesChange: '-5%',
-              profitChange: '+18%'
-            }
-          },
-          cropYield: {
-            cropPerformance: [
-              { crop: 'Wheat', acreage: 15.2, yieldPercentage: 85, target: 90, status: 'below_target' },
-              { crop: 'Corn', acreage: 12.8, yieldPercentage: 92, target: 85, status: 'above_target' },
-              { crop: 'Tomatoes', acreage: 8.5, yieldPercentage: 78, target: 80, status: 'below_target' }
-            ]
-          },
-          efficiency: {
-            metrics: [
-              { metric: 'Water Usage', status: '15% below target consumption', badge: 'Efficient', badgeColor: 'green' },
-              { metric: 'Fertilizer Usage', status: 'Within recommended range', badge: 'Normal', badgeColor: 'gray' },
-              { metric: 'Labor Efficiency', status: '20% improvement this quarter', badge: 'High', badgeColor: 'green' }
-            ]
-          }
-        });
+       
       } finally {
         setLoading(false);
       }
@@ -200,12 +175,8 @@ const ReportsPage = () => {
                 </div>
                 
                 <div className="space-y-3">
-                  {[
-                    { month: "Jan", expenses: -2400, revenue: 4800, profit: 2400 },
-                    { month: "Feb", expenses: -1800, revenue: 3600, profit: 1800 },
-                    { month: "Mar", expenses: -3200, revenue: 6400, profit: 3200 },
-                    { month: "Apr", expenses: -2800, revenue: 5600, profit: 2800 }
-                  ].map((row, index) => (
+                  {(reportsData?.financial?.monthlyBreakdown
+                  ).map((row, index) => (
                     <div key={index} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
                       <span className="font-medium text-gray-700 w-12">{row.month}</span>
                       <div className="flex gap-8 text-right">
@@ -227,11 +198,7 @@ const ReportsPage = () => {
                 </div>
                 
                 <div className="space-y-6">
-                  {(reportsData?.cropYield?.cropPerformance || [
-                    { crop: "Wheat", acreage: 15.2, yieldPercentage: 85, target: 90, status: "below_target" },
-                    { crop: "Corn", acreage: 12.8, yieldPercentage: 92, target: 85, status: "above_target" },
-                    { crop: "Tomatoes", acreage: 8.5, yieldPercentage: 78, target: 80, status: "below_target" }
-                  ]).map((crop, index) => (
+                  {(reportsData?.cropYield?.cropPerformance ).map((crop, index) => (
                     <div key={index} className="space-y-2">
                       <div className="flex items-center justify-between">
                         <h3 className="font-semibold text-gray-800">{crop.crop}</h3>
@@ -265,26 +232,7 @@ const ReportsPage = () => {
                 </div>
                 
                 <div className="space-y-4">
-                  {(reportsData?.efficiency?.metrics || [
-                    {
-                      metric: "Water Usage",
-                      status: "15% below target consumption",
-                      badge: "Efficient",
-                      badgeColor: "green"
-                    },
-                    {
-                      metric: "Fertilizer Usage",
-                      status: "Within recommended range",
-                      badge: "Normal",
-                      badgeColor: "gray"
-                    },
-                    {
-                      metric: "Labor Efficiency",
-                      status: "20% improvement this quarter",
-                      badge: "High",
-                      badgeColor: "green"
-                    }
-                  ]).map((item, index) => (
+                  {(reportsData?.efficiency?.metrics ).map((item, index) => (
                     <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                       <div>
                         <h3 className="font-semibold text-gray-800">{item.metric}</h3>

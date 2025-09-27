@@ -15,7 +15,7 @@ export async function fetchExpenses() {
 
 export async function fetchExpensesByPlot(plotId) {
   try {
-    const url = `${API_BASE}/expenses?plot_id=${plotId}`;
+    const url = `${API_BASE}/expenses/plot/${plotId}`;
     const response = await fetch(url);
     return await handleApiResponse(response);
   } catch (err) {
