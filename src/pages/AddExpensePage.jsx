@@ -3,21 +3,23 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { fetchPlotById } from "../services/plotsService";
 import { createExpense } from "../services/expenseService";
+import { fetchCrops } from "../services/cropService";
 
 const AddExpensePage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   
   const [plot, setPlot] = useState(null);
+  const [crops, setCrops] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   
   const [formData, setFormData] = useState({
-    category: "seeds",
+    crop_id: "",
+    type: "seeds",
     description: "",
     amount: "",
-    date: new Date().toISOString().split('T')[0],
-    notes: ""
+    date: new Date().toISOString().split('T')[0]
   });
 
   const [errors, setErrors] = useState({});
@@ -35,20 +37,32 @@ const AddExpensePage = () => {
   ];
 
   useEffect(() => {
-    const loadPlot = async () => {
+    const loadData = async () => {
       try {
-        const plotRes = await fetchPlotById(id);
+        const [plotRes, cropsRes] = await Promise.all([
+          fetchPlotById(id),
+          fetchCrops()
+        ]);
+        
         if (plotRes?.success && plotRes?.data) {
           setPlot(plotRes.data);
         }
+        
+        if (cropsRes?.success && cropsRes?.data) {
+          setCrops(cropsRes.data);
+          // Set first crop as default if available
+          if (cropsRes.data.length > 0) {
+            setFormData(prev => ({ ...prev, crop_id: cropsRes.data[0].id.toString() }));
+          }
+        }
       } catch (err) {
-        console.error("Error loading plot:", err);
+        console.error("Error loading data:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    loadPlot();
+    loadData();
   }, [id]);
 
   const handleInputChange = (e) => {
@@ -68,6 +82,10 @@ const AddExpensePage = () => {
 
   const validateForm = () => {
     const newErrors = {};
+    
+    if (!formData.crop_id) {
+      newErrors.crop_id = "Crop is required";
+    }
     
     if (!formData.description.trim()) {
       newErrors.description = "Description is required";
@@ -94,11 +112,11 @@ const AddExpensePage = () => {
     try {
       const expenseData = {
         plot_id: parseInt(id),
-        category: formData.category,
+        crop_id: parseInt(formData.crop_id),
+        type: formData.type,
         description: formData.description,
         amount: parseFloat(formData.amount),
-        date: formData.date,
-        notes: formData.notes
+        date: formData.date
       };
 
       const result = await createExpense(expenseData);
@@ -146,14 +164,39 @@ const AddExpensePage = () => {
       <div className="flex justify-center p-6">
         <div className="w-full max-w-3xl bg-white rounded-xl shadow p-6">
           <form className="flex flex-col gap-4">
-            {/* Category */}
+            {/* Crop Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Category
+                Crop *
               </label>
               <select
-                name="category"
-                value={formData.category}
+                name="crop_id"
+                value={formData.crop_id}
+                onChange={handleInputChange}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
+                  errors.crop_id ? "border-red-500" : "border-gray-300"
+                }`}
+              >
+                <option value="">Select a crop</option>
+                {crops.map((crop) => (
+                  <option key={crop.id} value={crop.id}>
+                    {crop.name}
+                  </option>
+                ))}
+              </select>
+              {errors.crop_id && (
+                <p className="text-red-500 text-sm mt-1">{errors.crop_id}</p>
+              )}
+            </div>
+
+            {/* Type */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Type
+              </label>
+              <select
+                name="type"
+                value={formData.type}
                 onChange={handleInputChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               >
@@ -226,20 +269,6 @@ const AddExpensePage = () => {
               )}
             </div>
 
-            {/* Notes */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Notes
-              </label>
-              <textarea
-                name="notes"
-                value={formData.notes}
-                onChange={handleInputChange}
-                rows={3}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="Additional notes about the expense, vendor, payment method, etc."
-              />
-            </div>
 
             {/* Buttons */}
             <div className="flex gap-3 mt-6">

@@ -15,7 +15,7 @@ export async function fetchIrrigations() {
 
 export async function fetchIrrigationsByPlot(plotId) {
   try {
-    const url = `${API_BASE}/irrigation?plot_id=${plotId}`;
+    const url = `${API_BASE}/irrigation/plot/${plotId}`;
     const response = await fetch(url);
     return await handleApiResponse(response);
   } catch (err) {

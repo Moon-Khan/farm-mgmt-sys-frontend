@@ -3,21 +3,23 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { fetchPlotById } from "../services/plotsService";
 import { createFertilizer } from "../services/fertilizerService";
+import { fetchCrops } from "../services/cropService";
 
 const AddFertilizerPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   
   const [plot, setPlot] = useState(null);
+  const [crops, setCrops] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   
   const [formData, setFormData] = useState({
-    name: "",
-    type: "organic",
+    crop_id: "",
+    fertilizer_type: "organic",
     quantity: "",
-    application_date: new Date().toISOString().split('T')[0],
-    notes: ""
+    date: new Date().toISOString().split('T')[0],
+    cost: ""
   });
 
   const [errors, setErrors] = useState({});
@@ -31,20 +33,32 @@ const AddFertilizerPage = () => {
   ];
 
   useEffect(() => {
-    const loadPlot = async () => {
+    const loadData = async () => {
       try {
-        const plotRes = await fetchPlotById(id);
+        const [plotRes, cropsRes] = await Promise.all([
+          fetchPlotById(id),
+          fetchCrops()
+        ]);
+        
         if (plotRes?.success && plotRes?.data) {
           setPlot(plotRes.data);
         }
+        
+        if (cropsRes?.success && cropsRes?.data) {
+          setCrops(cropsRes.data);
+          // Set first crop as default if available
+          if (cropsRes.data.length > 0) {
+            setFormData(prev => ({ ...prev, crop_id: cropsRes.data[0].id.toString() }));
+          }
+        }
       } catch (err) {
-        console.error("Error loading plot:", err);
+        console.error("Error loading data:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    loadPlot();
+    loadData();
   }, [id]);
 
   const handleInputChange = (e) => {
@@ -65,16 +79,22 @@ const AddFertilizerPage = () => {
   const validateForm = () => {
     const newErrors = {};
     
-    if (!formData.name.trim()) {
-      newErrors.name = "Fertilizer name is required";
+    if (!formData.crop_id) {
+      newErrors.crop_id = "Crop is required";
     }
     
     if (!formData.quantity.trim()) {
       newErrors.quantity = "Quantity is required";
     }
     
-    if (!formData.application_date) {
-      newErrors.application_date = "Application date is required";
+    if (!formData.date) {
+      newErrors.date = "Date is required";
+    }
+    
+    if (!formData.cost.trim()) {
+      newErrors.cost = "Cost is required";
+    } else if (isNaN(parseFloat(formData.cost))) {
+      newErrors.cost = "Cost must be a valid number";
     }
     
     setErrors(newErrors);
@@ -88,11 +108,11 @@ const AddFertilizerPage = () => {
     try {
       const fertilizerData = {
         plot_id: parseInt(id),
-        name: formData.name,
-        type: formData.type,
-        quantity: formData.quantity,
-        application_date: formData.application_date,
-        notes: formData.notes
+        crop_id: parseInt(formData.crop_id),
+        fertilizer_type: formData.fertilizer_type,
+        quantity: parseFloat(formData.quantity),
+        date: formData.date,
+        cost: parseFloat(formData.cost)
       };
 
       const result = await createFertilizer(fertilizerData);
@@ -140,34 +160,39 @@ const AddFertilizerPage = () => {
       <div className="flex justify-center p-6">
         <div className="w-full max-w-3xl bg-white rounded-xl shadow p-6">
           <form className="flex flex-col gap-4">
-            {/* Fertilizer Name */}
+            {/* Crop Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Fertilizer Name *
+                Crop *
               </label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
+              <select
+                name="crop_id"
+                value={formData.crop_id}
                 onChange={handleInputChange}
                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                  errors.name ? "border-red-500" : "border-gray-300"
+                  errors.crop_id ? "border-red-500" : "border-gray-300"
                 }`}
-                placeholder="e.g., NPK 10-10-10, Compost, etc."
-              />
-              {errors.name && (
-                <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+              >
+                <option value="">Select a crop</option>
+                {crops.map((crop) => (
+                  <option key={crop.id} value={crop.id}>
+                    {crop.name}
+                  </option>
+                ))}
+              </select>
+              {errors.crop_id && (
+                <p className="text-red-500 text-sm mt-1">{errors.crop_id}</p>
               )}
             </div>
 
-            {/* Type */}
+            {/* Fertilizer Type */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Type
+                Fertilizer Type
               </label>
               <select
-                name="type"
-                value={formData.type}
+                name="fertilizer_type"
+                value={formData.fertilizer_type}
                 onChange={handleInputChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               >
@@ -182,55 +207,64 @@ const AddFertilizerPage = () => {
             {/* Quantity */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Quantity *
+                Quantity (kg/liters) *
               </label>
               <input
-                type="text"
+                type="number"
                 name="quantity"
                 value={formData.quantity}
                 onChange={handleInputChange}
+                step="0.01"
+                min="0"
                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
                   errors.quantity ? "border-red-500" : "border-gray-300"
                 }`}
-                placeholder="e.g., 50 kg, 10 liters, 2 bags"
+                placeholder="e.g., 50.5"
               />
               {errors.quantity && (
                 <p className="text-red-500 text-sm mt-1">{errors.quantity}</p>
               )}
             </div>
 
-            {/* Application Date */}
+            {/* Date */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Application Date *
+                Date *
               </label>
               <input
                 type="date"
-                name="application_date"
-                value={formData.application_date}
+                name="date"
+                value={formData.date}
                 onChange={handleInputChange}
                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                  errors.application_date ? "border-red-500" : "border-gray-300"
+                  errors.date ? "border-red-500" : "border-gray-300"
                 }`}
               />
-              {errors.application_date && (
-                <p className="text-red-500 text-sm mt-1">{errors.application_date}</p>
+              {errors.date && (
+                <p className="text-red-500 text-sm mt-1">{errors.date}</p>
               )}
             </div>
 
-            {/* Notes */}
+            {/* Cost */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Notes
+                Cost ($) *
               </label>
-              <textarea
-                name="notes"
-                value={formData.notes}
+              <input
+                type="number"
+                name="cost"
+                value={formData.cost}
                 onChange={handleInputChange}
-                rows={3}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="Additional notes about application method, weather conditions, etc."
+                step="0.01"
+                min="0"
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
+                  errors.cost ? "border-red-500" : "border-gray-300"
+                }`}
+                placeholder="0.00"
               />
+              {errors.cost && (
+                <p className="text-red-500 text-sm mt-1">{errors.cost}</p>
+              )}
             </div>
 
             {/* Buttons */}

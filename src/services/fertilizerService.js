@@ -15,7 +15,7 @@ export async function fetchFertilizers() {
 
 export async function fetchFertilizersByPlot(plotId) {
   try {
-    const url = `${API_BASE}/fertilizers?plot_id=${plotId}`;
+    const url = `${API_BASE}/fertilizers/plot/${plotId}`;
     const response = await fetch(url);
     return await handleApiResponse(response);
   } catch (err) {
