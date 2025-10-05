@@ -14,6 +14,7 @@ import {
   Sprout,
   Plus,
   Clock,
+  RefreshCw,
 } from "lucide-react";
 import { fetchPlotById } from "../services/plotsService";
 import { fetchFertilizersByPlot } from "../services/fertilizerService";
@@ -21,6 +22,7 @@ import { fetchPesticidesByPlot } from "../services/pesticideService";
 import { fetchIrrigationsByPlot } from "../services/irrigationService";
 import { fetchExpensesByPlot } from "../services/expenseService";
 import { fetchLifecyclesByPlot } from "../services/lifecycleService";
+import { fetchUpcomingReminders } from "../services/reminderService";
 
 const TABS = [
   { key: "lifecycle", label: "Lifecycle", icon: <Sprout size={18} /> },
@@ -43,6 +45,8 @@ const PlotDetailsPage = () => {
   const [irrigations, setIrrigations] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [lifecycles, setLifecycles] = useState([]);
+  const [upcomingTasks, setUpcomingTasks] = useState([]);
+  const [tasksLoading, setTasksLoading] = useState(false);
   const [tabLoading, setTabLoading] = useState(false);
 
   // Load plot data
@@ -101,6 +105,61 @@ const PlotDetailsPage = () => {
     loadTabData();
   }, [activeTab, id]);
 
+  // Load upcoming tasks for this plot
+  useEffect(() => {
+    const loadUpcomingTasks = async () => {
+      if (!id) return;
+
+      setTasksLoading(true);
+      try {
+        const res = await fetchUpcomingReminders(7); // Get next 7 days
+        if (res?.success && res?.data) {
+          // Filter tasks for this specific plot
+          const plotTasks = res.data.filter(task => task.plot_id === parseInt(id));
+          setUpcomingTasks(plotTasks);
+        }
+      } catch (err) {
+        console.error("Error loading upcoming tasks:", err);
+        setUpcomingTasks([]);
+      } finally {
+        setTasksLoading(false);
+      }
+    };
+
+    loadUpcomingTasks();
+  }, [id]);
+
+  // Priority calculation function (same as RemindersPage)
+  const priorityFor = (task) => {
+    const now = new Date();
+    const due = new Date(task.due_date);
+    const diffDays = Math.ceil((due - now) / (1000 * 60 * 60 * 24));
+    if (diffDays <= 2) return "high";
+    if (diffDays <= 5) return "medium";
+    return "low";
+  };
+
+  // Badge classes function (same as RemindersPage)
+  const badgeClasses = (priority) => {
+    switch (priority) {
+      case "high":
+        return "bg-red-100 text-red-700";
+      case "medium":
+        return "bg-yellow-100 text-yellow-700";
+      default:
+        return "bg-green-100 text-green-700";
+    }
+  };
+
+  // Format date function (same as RemindersPage)
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+    });
+  };
+
   const handleAddLog = () => {
     // Navigate to appropriate add form based on active tab
     switch (activeTab) {
@@ -126,6 +185,22 @@ const PlotDetailsPage = () => {
 
   const handleViewTimeline = () => {
     navigate(`/plots/${id}/timeline`);
+  };
+
+  // Refresh tasks function (for when tasks are completed)
+  const refreshTasks = () => {
+    const loadUpcomingTasks = async () => {
+      try {
+        const res = await fetchUpcomingReminders(7);
+        if (res?.success && res?.data) {
+          const plotTasks = res.data.filter(task => task.plot_id === parseInt(id));
+          setUpcomingTasks(plotTasks);
+        }
+      } catch (err) {
+        console.error("Error refreshing tasks:", err);
+      }
+    };
+    loadUpcomingTasks();
   };
 
   if (loading) return <p className="p-4 text-gray-500">Loading plot details...</p>;
@@ -174,7 +249,7 @@ const PlotDetailsPage = () => {
                   {plot.status || "Growing"}
                 </span>
                 <span className="text-gray-600">•</span>
-                <span className="text-gray-700 font-medium">{plot.current_crop?.name || "Wheat"}</span>
+                <span className="text-gray-700 font-medium">{plot.current_crop?.name || "No crop assigned"}</span>
               </div>
             </div>
           </div>
@@ -186,7 +261,9 @@ const PlotDetailsPage = () => {
             <User size={16} className="text-blue-600" />
             <div className="text-sm">
               <span className="font-medium text-gray-800">Caretaker</span>
-              <p className="text-gray-600">{plot.caretaker?.name || "John Doe"} • {plot.caretaker?.contact_info || "+1 (555) 123-4567"}</p>
+              <p className="text-gray-600">
+                {plot.caretaker?.name ? `${plot.caretaker.name} • ${plot.caretaker.contact_info || 'No contact info'}` : 'No caretaker assigned'}
+              </p>
             </div>
           </div>
           
@@ -194,7 +271,9 @@ const PlotDetailsPage = () => {
             <Calendar size={16} className="text-green-600" />
             <div className="text-sm">
               <span className="font-medium text-gray-800">Planted Date</span>
-              <p className="text-gray-600">{new Date().toLocaleDateString()}</p>
+              <p className="text-gray-600">
+                {plot.planted_date ? new Date(plot.planted_date).toLocaleDateString() : 'Not specified'}
+              </p>
             </div>
           </div>
           
@@ -202,36 +281,74 @@ const PlotDetailsPage = () => {
             <Calendar size={16} className="text-orange-600" />
             <div className="text-sm">
               <span className="font-medium text-gray-800">Expected Harvest</span>
-              <p className="text-gray-600">{new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toLocaleDateString()}</p>
+              <p className="text-gray-600">
+                {plot.expected_harvest_date ? new Date(plot.expected_harvest_date).toLocaleDateString() : 'Not specified'}
+              </p>
             </div>
           </div>
 
           <div className="mt-3">
             <h3 className="font-medium text-sm mb-1 text-gray-800">Notes</h3>
-            <p className="text-gray-600 text-sm">Rich soil, automatic irrigation system installed</p>
+            <p className="text-gray-600 text-sm">{plot.notes || 'No notes available'}</p>
           </div>
         </div>
 
-        {/* Upcoming Tasks */}
-        <div className="bg-white rounded-lg shadow-sm border p-4">
-          <h2 className="font-semibold mb-3 text-gray-800">Upcoming Tasks</h2>
-          <div className="space-y-2">
-            <div className="flex justify-between items-center bg-gray-50 px-3 py-2 rounded-lg">
-              <div>
-                <span className="font-medium text-sm text-gray-800">Apply Fertilizer</span>
-                <p className="text-xs text-gray-500">Due: {new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toLocaleDateString()}</p>
-              </div>
-              <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-600 font-medium">high</span>
-            </div>
-            <div className="flex justify-between items-center bg-gray-50 px-3 py-2 rounded-lg">
-              <div>
-                <span className="font-medium text-sm text-gray-800">Pest Inspection</span>
-                <p className="text-xs text-gray-500">Due: {new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}</p>
-              </div>
-              <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-700 font-medium">medium</span>
+        {/* Upcoming Tasks - Dynamic */}
+        {tasksLoading ? (
+          <div className="bg-white rounded-lg shadow-sm border p-4">
+            <h2 className="font-semibold mb-3 text-gray-800">Upcoming Tasks</h2>
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
             </div>
           </div>
-        </div>
+        ) : upcomingTasks.length > 0 ? (
+          <div className="bg-white rounded-lg shadow-sm border p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-semibold text-gray-800">Upcoming Tasks</h2>
+              <button
+                onClick={refreshTasks}
+                className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors"
+                title="Refresh tasks"
+              >
+                <RefreshCw size={16} />
+              </button>
+            </div>
+            <div className="space-y-2">
+              {upcomingTasks.slice(0, 3).map((task) => {
+                const priority = priorityFor(task);
+
+                return (
+                  <div key={task.id} className="flex justify-between items-center bg-gray-50 px-3 py-2 rounded-lg">
+                    <div>
+                      <span className="font-medium text-sm text-gray-800">{task.title || task.type}</span>
+                      <p className="text-xs text-gray-500">Due: {formatDate(task.due_date)}</p>
+                    </div>
+                    <span className={`px-2 py-1 text-xs rounded-full ${badgeClasses(priority)} font-medium`}>
+                      {priority}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <div className="bg-white rounded-lg shadow-sm border p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-semibold text-gray-800">Upcoming Tasks</h2>
+              <button
+                onClick={refreshTasks}
+                className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors"
+                title="Refresh tasks"
+              >
+                <RefreshCw size={16} />
+              </button>
+            </div>
+            <div className="text-center py-6">
+              <Clock size={32} className="mx-auto text-gray-400 mb-2" />
+              <p className="text-gray-500 text-sm">No upcoming tasks</p>
+            </div>
+          </div>
+        )}
 
         {/* Tabs Navigation */}
         <div className="bg-white rounded-lg shadow-sm border">

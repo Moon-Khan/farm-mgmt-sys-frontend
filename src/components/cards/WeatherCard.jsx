@@ -3,9 +3,8 @@ import PropTypes from 'prop-types';
 import { WarningIcon } from '../icons/ProfessionalIcons';
 
 const WeatherCard = ({ status, rain, humidity }) => (
-  <div className="bg-orange-50 border border-orange-200 rounded-2xl shadow flex items-center gap-3 p-4 relative overflow-hidden">
-    {/* Green left border accent */}
-    <div className="absolute left-0 top-0 bottom-0 w-1 bg-green-500"></div>
+<div className="bg-[#dbfaff]/20 border border-[#dbfaff]/40 rounded-2xl shadow flex items-center gap-3 p-4 relative overflow-hidden">    {/* Green left border accent */}
+    <div className=""></div>
     
     <WarningIcon className="w-8 h-8" color="#EA580C" />
     <div>

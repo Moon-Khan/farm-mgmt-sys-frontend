@@ -1,10 +1,10 @@
 import { handleApiResponse } from './index';
-const API_BASE = "http://localhost:5000/v1";
+// const API_BASE = "http://localhost:5000/v1";
 
 
 export async function fetchExpenses() {
     try {
-      const url = `${API_BASE}/expenses`;
+      const url = `${process.env.REACT_APP_API_BASE}/expenses`;
       const response = await fetch(url);
       return await handleApiResponse(response);
     } catch (err) {
@@ -15,7 +15,7 @@ export async function fetchExpenses() {
 
 export async function fetchExpensesByPlot(plotId) {
   try {
-    const url = `${API_BASE}/expenses/plot/${plotId}`;
+    const url = `${process.env.REACT_APP_API_BASE}/expenses/plot/${plotId}`;
     const response = await fetch(url);
     return await handleApiResponse(response);
   } catch (err) {
@@ -26,7 +26,7 @@ export async function fetchExpensesByPlot(plotId) {
 
 export async function createExpense(expenseData) {
   try {
-    const response = await fetch(`${API_BASE}/expenses`, {
+    const response = await fetch(`${process.env.REACT_APP_API_BASE}/expenses`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -33,13 +33,29 @@ export const WarningIcon = ({ className = "w-6 h-6", color = "currentColor" }) =
 
 export const WheatIcon = ({ className = "w-6 h-6", color = "currentColor" }) => (
   <svg className={className} fill={color} viewBox="0 0 24 24">
-    <path d="M12 2L4 9v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V9l-8-7zM12 4.5l6 5.25V20H6V9.75L12 4.5z"/>
+    <path d="M12 2c-1.5 0-3 .5-4 1.5L6 5c-1.5 1-2.5 2.5-2.5 4.5 0 1 .3 2 .8 3L12 20l7.7-7.5c.5-1 .8-2 .8-3 0-2-1-3.5-2.5-4.5L16 3.5C15 2.5 13.5 2 12 2z"/>
+    {/* Wheat stalk details */}
+    <path d="M8 8v8M16 8v8M10 6v12M14 6v12" stroke={color} strokeWidth="1" fill="none"/>
+    <circle cx="10" cy="10" r="1" fill={color}/>
+    <circle cx="14" cy="12" r="1" fill={color}/>
+    <circle cx="10" cy="14" r="1" fill={color}/>
   </svg>
 );
 
 export const CornIcon = ({ className = "w-6 h-6", color = "currentColor" }) => (
   <svg className={className} fill={color} viewBox="0 0 24 24">
-    <path d="M12 2L4 9v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V9l-8-7zM12 4.5l6 5.25V20H6V9.75L12 4.5z"/>
+    <path d="M12 2c-1.5 0-3 .5-4 1.5L6 5c-1.5 1-2.5 2.5-2.5 4.5 0 1 .3 2 .8 3L12 20l7.7-7.5c.5-1 .8-2 .8-3 0-2-1-3.5-2.5-4.5L16 3.5C15 2.5 13.5 2 12 2z"/>
+    {/* Corn cob details */}
+    <path d="M9 8h6M9 10h6M9 12h6M9 14h6" stroke={color} strokeWidth="1" fill="none"/>
+    <circle cx="10" cy="9" r="0.8" fill="#FFD700"/>
+    <circle cx="12" cy="9" r="0.8" fill="#FFD700"/>
+    <circle cx="14" cy="9" r="0.8" fill="#FFD700"/>
+    <circle cx="10" cy="11" r="0.8" fill="#FFD700"/>
+    <circle cx="12" cy="11" r="0.8" fill="#FFD700"/>
+    <circle cx="14" cy="11" r="0.8" fill="#FFD700"/>
+    <circle cx="10" cy="13" r="0.8" fill="#FFD700"/>
+    <circle cx="12" cy="13" r="0.8" fill="#FFD700"/>
+    <circle cx="14" cy="13" r="0.8" fill="#FFD700"/>
   </svg>
 );
 

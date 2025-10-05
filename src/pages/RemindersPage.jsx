@@ -71,7 +71,7 @@ function formatDate(d) {
 const ToggleTabs = ({ active, onChange }) => {
   const tabs = [
     { id: "week", label: "This Week" },
-    { id: "upcoming", label: "Upcoming" },
+    { id: "all", label: "All" },
   ];
   return (
     <div className="flex justify-center mt-3">
@@ -154,16 +154,18 @@ const RemindersPage = () => {
   const [tab, setTab] = useState("week");
   const [loading, setLoading] = useState(true);
   const [reminders, setReminders] = useState([]);
+  const [filterType, setFilterType] = useState(null); // null = all
 
   async function load() {
     setLoading(true);
     try {
       if (tab === "week") {
-        const res = await fetchUpcomingReminders(7);
+        const res = await fetchUpcomingReminders(7, filterType || undefined);
         setReminders(res?.data || []);
       } else {
-        const res = await fetchAllReminders();
-        setReminders(res?.data || []);
+        const res = await fetchAllReminders(filterType || undefined);
+        const onlyDone = (res?.data || []).filter((r) => r.sent === true);
+        setReminders(onlyDone);
       }
     } catch (e) {
       console.error("Failed to load reminders", e);
@@ -176,7 +178,7 @@ const RemindersPage = () => {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab]);
+  }, [tab, filterType]);
 
   const sorted = useMemo(() => {
     return [...reminders].sort(
@@ -204,6 +206,29 @@ const RemindersPage = () => {
 
       {/* Body */}
       <div className="p-4 space-y-3">
+        {/* Type Filter Chips */}
+        <div className="flex gap-2 mb-2 overflow-x-auto">
+          {[
+            { id: null, label: 'All' },
+            { id: 'watering', label: TYPE_META.watering.title },
+            { id: 'fertilizer', label: TYPE_META.fertilizer.title },
+            { id: 'spray', label: TYPE_META.spray.title },
+            { id: 'harvest', label: TYPE_META.harvest.title },
+          ].map((t) => (
+            <button
+              key={String(t.id)}
+              onClick={() => setFilterType(t.id)}
+              className={`px-3 py-1 text-sm rounded-full border transition whitespace-nowrap ${
+                filterType === t.id
+                  ? 'bg-green-600 text-white border-green-600'
+                  : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-600"></div>

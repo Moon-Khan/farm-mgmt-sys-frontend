@@ -23,12 +23,17 @@ export const STATUS_CONFIG = {
 export const CROP_ICONS = {
   Wheat: 'WheatIcon',
   Corn: 'CornIcon',
-  Tomatoes: 'tomato'
+  Tomatoes: 'CornIcon', // Use corn icon as fallback for tomatoes
+  Rice: 'WheatIcon', // Use wheat icon as fallback for rice
+  Soybean: 'WheatIcon', // Use wheat icon as fallback for soybean
+  Cotton: 'CornIcon', // Use corn icon as fallback for cotton
+  Potato: 'CornIcon', // Use corn icon as fallback for potato
+  'No crop assigned': 'default'
 };
 
 export const ACTION_BUTTONS = [
   {
-    label: "Water",
+    label: "Irrigate",
     icon: "WaterIcon",
     bgColor: "bg-blue-50",
     textColor: "text-blue-700",
@@ -36,7 +41,7 @@ export const ACTION_BUTTONS = [
     action: "water"
   },
   {
-    label: "Track",
+    label: "Monitor",
     icon: "ChartIcon",
     bgColor: "bg-green-50",
     textColor: "text-green-700",
