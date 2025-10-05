@@ -5,7 +5,7 @@ const SummaryCard = ({ icon, label, value, bgColor }) => {
   return (
     <div className={`rounded-xl shadow flex flex-col items-center py-4 px-2 ${bgColor} relative overflow-hidden`}>
       {/* Colored left border accent */}
-      <div className={`absolute left-0 top-0 bottom-0 w-1 ${
+      <div className={`${
         bgColor.includes('green') ? 'bg-green-500' :
         bgColor.includes('yellow') ? 'bg-yellow-500' :
         bgColor.includes('orange') ? 'bg-orange-500' :

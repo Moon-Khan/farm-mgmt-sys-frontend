@@ -4,7 +4,7 @@ const API_BASE = "http://localhost:5000/v1";
 
 export async function fetchIrrigations() {
     try {
-      const url = `${API_BASE}/irrigation`;
+      const url = `${process.env.PROD_API_BASE}/irrigation`;
       const response = await fetch(url);
       return await handleApiResponse(response);
     } catch (err) {
@@ -15,7 +15,7 @@ export async function fetchIrrigations() {
 
 export async function fetchIrrigationsByPlot(plotId) {
   try {
-    const url = `${API_BASE}/irrigation/plot/${plotId}`;
+    const url = `${process.env.PROD_API_BASE}/irrigation/plot/${plotId}`;
     const response = await fetch(url);
     return await handleApiResponse(response);
   } catch (err) {
@@ -26,7 +26,7 @@ export async function fetchIrrigationsByPlot(plotId) {
 
 export async function createIrrigation(irrigationData) {
   try {
-    const response = await fetch(`${API_BASE}/irrigation`, {
+    const response = await fetch(`${process.env.PROD_API_BASE}/irrigation`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -42,7 +42,7 @@ export async function createIrrigation(irrigationData) {
 
 export async function createIrrigationSchedule(data) {
     try {
-      const response = await fetch(`${API_BASE}/irrigation`, {
+      const response = await fetch(`${process.env.PROD_API_BASE}/irrigation`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

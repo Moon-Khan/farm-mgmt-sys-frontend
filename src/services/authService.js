@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5000/v1';
+// const API_BASE_URL = 'http://localhost:5000/v1';
 
 function authHeaders() {
   const token = localStorage.getItem('auth_token');
@@ -15,7 +15,7 @@ async function handleResponse(res) {
 }
 
 export async function signup({ name, email, password }) {
-  const res = await fetch(`${API_BASE_URL}/auth/signup`, {
+  const res = await fetch(`${process.env.REACT_APP_API_BASE}/auth/signup`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name, email, password }),
@@ -26,25 +26,27 @@ export async function signup({ name, email, password }) {
 }
 
 export async function login({ email, password }) {
-  const res = await fetch(`${API_BASE_URL}/auth/login`, {
+  const res = await fetch(`${process.env.REACT_APP_API_BASE}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
   });
+
+  console.log('====> res', res);
   const data = await handleResponse(res);
   if (data?.data?.token) localStorage.setItem('auth_token', data.data.token);
   return data;
 }
 
 export async function getMe() {
-  const res = await fetch(`${API_BASE_URL}/auth/me`, {
+  const res = await fetch(`${process.env.REACT_APP_API_BASE}/auth/me`, {
     headers: { ...authHeaders() },
   });
   return handleResponse(res);
 }
 
 export async function updateMe({ name, password }) {
-  const res = await fetch(`${API_BASE_URL}/auth/me`, {
+  const res = await fetch(`${process.env.REACT_APP_API_BASE}/auth/me`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify({ name, password }),

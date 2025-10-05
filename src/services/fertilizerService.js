@@ -1,10 +1,10 @@
 import { handleApiResponse } from './index';
-const API_BASE = "http://localhost:5000/v1";
+// const API_BASE = "http://localhost:5000/v1";
 
 
 export async function fetchFertilizers() {
     try {
-      const url = `${API_BASE}/fertilizers`;
+      const url = `${process.env.PROD_API_BASE}/fertilizers`;
       const response = await fetch(url);
       return await handleApiResponse(response);
     } catch (err) {
@@ -15,7 +15,7 @@ export async function fetchFertilizers() {
 
 export async function fetchFertilizersByPlot(plotId) {
   try {
-    const url = `${API_BASE}/fertilizers/plot/${plotId}`;
+    const url = `${process.env.PROD_API_BASE}/fertilizers/plot/${plotId}`;
     const response = await fetch(url);
     return await handleApiResponse(response);
   } catch (err) {
@@ -26,7 +26,7 @@ export async function fetchFertilizersByPlot(plotId) {
 
 export async function createFertilizer(fertilizerData) {
   try {
-    const response = await fetch(`${API_BASE}/fertilizers`, {
+    const response = await fetch(`${process.env.PROD_API_BASE}/fertilizers`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -42,7 +42,7 @@ export async function createFertilizer(fertilizerData) {
 
 export async function createFertilizerApplication(data) {
     try {
-      const response = await fetch(`${API_BASE}/fertilizers`, {
+      const response = await fetch(`${process.env.PROD_API_BASE}/fertilizers`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,7 +1,7 @@
 // import { mockPlots } from './mockData';
 import { handleApiResponse } from './index';
 
-const API_BASE = "http://localhost:5000/v1";
+// const API_BASE = "http://localhost:5000/v1";
 
 function authHeaders() {
   const token = localStorage.getItem('auth_token');
@@ -24,7 +24,7 @@ export async function fetchPlots(params = {}) {
     if (params.caretaker_id) queryParams.append('caretaker_id', params.caretaker_id);
     if (params.current_crop_id) queryParams.append('current_crop_id', params.current_crop_id);
     
-    const url = `${API_BASE}/plots${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    const url = `${process.env.REACT_APP_API_BASE}/plots${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     const response = await fetch(url, { headers: { ...authHeaders() } });
     return await handleApiResponse(response);
   } catch (err) {
@@ -36,7 +36,7 @@ export async function fetchPlots(params = {}) {
 // Get plot by ID
 export async function fetchPlotById(id) {
   try {
-    const response = await fetch(`${API_BASE}/plots/${id}`, { headers: { ...authHeaders() } });
+    const response = await fetch(`${process.env.REACT_APP_API_BASE}/plots/${id}`, { headers: { ...authHeaders() } });
     return await handleApiResponse(response);
   } catch (err) {
     console.error('Error fetching plot:', err);
@@ -47,7 +47,7 @@ export async function fetchPlotById(id) {
 // Create new plot
 export async function createPlot(plotData) {
   try {
-    const response = await fetch(`${API_BASE}/plots`, {
+    const response = await fetch(`${process.env.REACT_APP_API_BASE}/plots`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -65,7 +65,7 @@ export async function createPlot(plotData) {
 // Update plot
 export async function updatePlot(id, plotData) {
   try {
-    const response = await fetch(`${API_BASE}/plots/${id}`, {
+    const response = await fetch(`${process.env.REACT_APP_API_BASE}/plots/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -83,7 +83,7 @@ export async function updatePlot(id, plotData) {
 // Delete plot
 export async function deletePlot(id) {
   try {
-    const response = await fetch(`${API_BASE}/plots/${id}`, {
+    const response = await fetch(`${process.env.REACT_APP_API_BASE}/plots/${id}`, {
       method: 'DELETE',
       headers: { ...authHeaders() },
     });
@@ -102,7 +102,7 @@ export async function fetchPlotsByStatus(status, params = {}) {
     if (params.page) queryParams.append('page', params.page);
     if (params.limit) queryParams.append('limit', params.limit);
     
-    const url = `${API_BASE}/plots/status/${status}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    const url = `${process.env.REACT_APP_API_BASE}/plots/status/${status}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     const response = await fetch(url);
     return await handleApiResponse(response);
   } catch (err) {

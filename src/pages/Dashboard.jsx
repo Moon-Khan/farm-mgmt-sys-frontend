@@ -6,6 +6,83 @@ import { useDashboardData } from "../hooks/useDashboardData";
 import { LocationIcon, PlantIcon, ThermometerIcon, RainIcon } from "../components/icons/ProfessionalIcons";
 import { useNavigate } from "react-router-dom";
 
+// Intelligent next task calculation based on plot state
+const calculateNextTask = (plot) => {
+  const { status, current_crop, planted_date } = plot;
+
+  // Calculate days since planting
+  const daysSincePlanted = planted_date
+    ? Math.floor((new Date() - new Date(planted_date)) / (1000 * 60 * 60 * 24))
+    : 0;
+
+  // Status-based task logic with time progression
+  switch (status) {
+    case 'planting':
+      if (daysSincePlanted <= 2) return "Water seedlings daily";
+      if (daysSincePlanted <= 5) return "Monitor germination closely";
+      if (daysSincePlanted <= 10) return "Thin overcrowded seedlings";
+      return "Harden off transplants";
+
+    case 'growing':
+      // Early growth stage
+      if (daysSincePlanted <= 7) return "Apply balanced fertilizer";
+      if (daysSincePlanted <= 14) return "Mulch to retain moisture";
+      if (daysSincePlanted <= 21) return "Check for early pests";
+
+      // Mid growth stage
+      if (daysSincePlanted <= 35) return "Side-dress with nitrogen";
+      if (daysSincePlanted <= 45) return "Monitor for nutrient deficiencies";
+
+      // Late growth stage
+      if (daysSincePlanted <= 60) return "Reduce watering frequency";
+      if (daysSincePlanted <= 75) return "Monitor fruit/flower development";
+
+      return "Prepare harvesting equipment";
+
+    case 'harvested':
+      return "Test soil nutrients for next crop";
+
+    case 'ready':
+      return "Schedule harvest within 3 days";
+
+    default:
+      // Crop-specific intelligent tasks
+      const cropName = current_crop?.name?.toLowerCase() || '';
+
+      if (cropName.includes('wheat')) {
+        if (daysSincePlanted <= 15) return "Monitor tiller development";
+        if (daysSincePlanted <= 40) return "Scout for stripe rust";
+        if (daysSincePlanted <= 70) return "Check grain fill progress";
+        return "Prepare combine harvester";
+      }
+
+      if (cropName.includes('corn')) {
+        if (daysSincePlanted <= 12) return "Check plant establishment";
+        if (daysSincePlanted <= 35) return "Monitor ear initiation";
+        if (daysSincePlanted <= 65) return "Assess kernel development";
+        return "Schedule corn harvest";
+      }
+
+      if (cropName.includes('tomato')) {
+        if (daysSincePlanted <= 20) return "Prune lower leaves weekly";
+        if (daysSincePlanted <= 45) return "Stake heavy fruit clusters";
+        if (daysSincePlanted <= 70) return "Monitor calcium deficiency";
+        return "Begin harvest preparation";
+      }
+
+      if (cropName.includes('rice')) {
+        if (daysSincePlanted <= 10) return "Maintain water depth";
+        if (daysSincePlanted <= 30) return "Control weed competition";
+        return "Monitor panicle development";
+      }
+
+      // Generic fallback with urgency indicators
+      if (daysSincePlanted <= 7) return "Monitor daily";
+      if (daysSincePlanted <= 30) return "Weekly maintenance check";
+      return "Monthly growth assessment";
+  }
+};
+
 const Dashboard = () => {
 
 
@@ -22,18 +99,23 @@ const Dashboard = () => {
   
   // Handler functions for plot actions
   const handleWater = (plotId) => {
-    console.log(`Watering plot ${plotId}`);
-    // TODO: Implement watering functionality
+    console.log(`Navigating to irrigation management for plot ${plotId}`);
+    // Navigate to irrigation management for this specific plot
+    // Since there's no specific irrigation route, navigate to plot details
+    // where irrigation can be managed
+    navigate(`/plots/${plotId}#irrigation`);
   };
 
   const handleTrack = (plotId) => {
-    console.log(`Tracking plot ${plotId}`);
-    // TODO: Implement tracking functionality
+    console.log(`Navigating to crop tracking for plot ${plotId}`);
+    // Navigate to crop lifecycle tracking for this plot
+    navigate(`/plots/${plotId}/timeline`);
   };
 
   const handleDetails = (plotId) => {
-    console.log(`Viewing details for plot ${plotId}`);
-    // TODO: Navigate to plot details page
+    console.log(`Navigating to plot details for plot ${plotId}`);
+    // Navigate to comprehensive plot details page
+    navigate(`/plots/${plotId}`);
   };
 
   const handleMenuClick = (plotId) => {
@@ -42,9 +124,7 @@ const Dashboard = () => {
   };
 
   const handleAddPlot = () => {
-    console.log('Add new plot');
-    // TODO: Navigate to add plot page or show modal
-
+    console.log('Navigate to add plot page');
     navigate('/add-plot');
   };
 
@@ -192,7 +272,7 @@ const Dashboard = () => {
                 crop={plot.current_crop?.name || "N/A"}
                 caretaker={plot.caretaker?.name || "N/A"}
                 status={plot.status}
-                nextTask={plot.nextTask || "Monitor growth"}
+                nextTask={calculateNextTask(plot)}
                 onWater={() => handleWater(plot.id)}
                 onTrack={() => handleTrack(plot.id)}
                 onDetails={() => handleDetails(plot.id)}
