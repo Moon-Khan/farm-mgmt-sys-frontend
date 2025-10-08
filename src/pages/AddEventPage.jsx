@@ -3,36 +3,29 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { fetchPlotById } from "../services/plotsService";
 import { createLifecycle } from "../services/lifecycleService";
+import { getLifecycleEventOptions } from "../constants/lifecycleEvents";
 
 const AddEventPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  
+
   const [plot, setPlot] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  
+
   const [formData, setFormData] = useState({
-    event_type: "sowing",
+    event_type: "",
     title: "",
     description: "",
     date: new Date().toISOString().split('T')[0],
-    notes: ""
+    notes: "",
+    yield_amount: "",
+    yield_unit: "kg"
   });
 
   const [errors, setErrors] = useState({});
 
-  const eventTypes = [
-    { value: "sowing", label: "Sowing" },
-    { value: "germination", label: "Germination" },
-    { value: "flowering", label: "Flowering" },
-    { value: "harvest", label: "Harvest" },
-    { value: "fertilization", label: "Fertilization" },
-    { value: "irrigation", label: "Irrigation" },
-    { value: "pest_control", label: "Pest Control" },
-    { value: "pruning", label: "Pruning" },
-    { value: "other", label: "Other" }
-  ];
+  const eventOptions = getLifecycleEventOptions();
 
   useEffect(() => {
     const loadPlot = async () => {
@@ -53,11 +46,26 @@ const AddEventPage = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    
+
+    // Handle event type change specially to reset yield fields
+    if (name === 'event_type') {
+      const newFormData = { ...formData, [name]: value };
+
+      // Reset yield fields when changing from harvest events
+      if ((formData.event_type === 'HARVESTING' || formData.event_type === 'POST_HARVEST') &&
+          (value !== 'HARVESTING' && value !== 'POST_HARVEST')) {
+        newFormData.yield_amount = "";
+        newFormData.yield_unit = "kg";
+      }
+
+      setFormData(newFormData);
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -68,26 +76,36 @@ const AddEventPage = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.event_type) {
       newErrors.event_type = "Event type is required";
     }
-    
+
     if (!formData.title.trim()) {
       newErrors.title = "Title is required";
     }
-    
+
     if (!formData.date) {
       newErrors.date = "Date is required";
     }
-    
+
+    // Validate yield fields only for harvest events
+    if ((formData.event_type === 'HARVESTING' || formData.event_type === 'POST_HARVEST')) {
+      if (!formData.yield_amount || formData.yield_amount <= 0) {
+        newErrors.yield_amount = "Yield amount is required for harvest events";
+      }
+      if (!formData.yield_unit) {
+        newErrors.yield_unit = "Yield unit is required for harvest events";
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSave = async () => {
     if (!validateForm()) return;
-    
+
     setSaving(true);
     try {
       const lifecycleData = {
@@ -97,7 +115,9 @@ const AddEventPage = () => {
         title: formData.title,
         description: formData.description,
         date: formData.date,
-        notes: formData.notes
+        notes: formData.notes,
+        yield_amount: formData.yield_amount ? parseFloat(formData.yield_amount) : null,
+        yield_unit: formData.yield_unit
       };
 
       const result = await createLifecycle(lifecycleData);
@@ -158,9 +178,10 @@ const AddEventPage = () => {
                   errors.event_type ? "border-red-500" : "border-gray-300"
                 }`}
               >
-                {eventTypes.map((type) => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
+                <option value="">Select Event Type</option>
+                {eventOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
                   </option>
                 ))}
               </select>
@@ -237,6 +258,49 @@ const AddEventPage = () => {
                 placeholder="Additional notes (optional)"
               />
             </div>
+
+            {/* Yield Information - Only show for harvest-related events */}
+            {(formData.event_type === 'HARVESTING' || formData.event_type === 'POST_HARVEST') && (
+              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                <h3 className="text-sm font-medium text-green-800 mb-3">Harvest Information</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Yield Amount *
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      name="yield_amount"
+                      value={formData.yield_amount}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="0.0"
+                      required={formData.event_type === 'HARVESTING' || formData.event_type === 'POST_HARVEST'}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Yield Unit *
+                    </label>
+                    <select
+                      name="yield_unit"
+                      value={formData.yield_unit}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      required={formData.event_type === 'HARVESTING' || formData.event_type === 'POST_HARVEST'}
+                    >
+                      <option value="kg">Kilograms (kg)</option>
+                      <option value="tons">Tons</option>
+                      <option value="quintals">Quintals</option>
+                      <option value="lbs">Pounds (lbs)</option>
+                      <option value="bushels">Bushels</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Buttons */}
             <div className="flex gap-3 mt-6">

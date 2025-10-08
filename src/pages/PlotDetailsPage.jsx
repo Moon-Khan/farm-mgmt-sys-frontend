@@ -21,11 +21,9 @@ import { fetchFertilizersByPlot } from "../services/fertilizerService";
 import { fetchPesticidesByPlot } from "../services/pesticideService";
 import { fetchIrrigationsByPlot } from "../services/irrigationService";
 import { fetchExpensesByPlot } from "../services/expenseService";
-import { fetchLifecyclesByPlot } from "../services/lifecycleService";
 import { fetchUpcomingReminders } from "../services/reminderService";
 
 const TABS = [
-  { key: "lifecycle", label: "Lifecycle", icon: <Sprout size={18} /> },
   { key: "fertilizer", label: "Fertilizer", icon: <ClipboardList size={18} /> },
   { key: "pesticide", label: "Pesticide", icon: <Bug size={18} /> },
   { key: "irrigation", label: "Irrigation", icon: <Droplets size={18} /> },
@@ -37,14 +35,13 @@ const PlotDetailsPage = () => {
   const navigate = useNavigate();
   const [plot, setPlot] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("lifecycle");
+  const [activeTab, setActiveTab] = useState("fertilizer");
   
   // Tab data states
   const [fertilizers, setFertilizers] = useState([]);
   const [pesticides, setPesticides] = useState([]);
   const [irrigations, setIrrigations] = useState([]);
   const [expenses, setExpenses] = useState([]);
-  const [lifecycles, setLifecycles] = useState([]);
   const [upcomingTasks, setUpcomingTasks] = useState([]);
   const [tasksLoading, setTasksLoading] = useState(false);
   const [tabLoading, setTabLoading] = useState(false);
@@ -66,12 +63,22 @@ const PlotDetailsPage = () => {
     loadPlot();
   }, [id]);
 
+  // 1️⃣ Load tab from URL hash on mount
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash) {
+      const tabName = hash.replace("#", "");
+      setActiveTab(tabName);
+    }
+  }, []);
+
   // Load tab-specific data when tab changes
   useEffect(() => {
     const loadTabData = async () => {
       if (!id) return;
-      
       setTabLoading(true);
+    
+            
       try {
         switch (activeTab) {
           case "fertilizer":
@@ -90,10 +97,7 @@ const PlotDetailsPage = () => {
             const expRes = await fetchExpensesByPlot(id);
             setExpenses(expRes?.success ? expRes.data : []);
             break;
-          case "lifecycle":
-            const lifecycleRes = await fetchLifecyclesByPlot(id);
-            setLifecycles(lifecycleRes?.success ? lifecycleRes.data : []);
-            break;
+          
         }
       } catch (err) {
         console.error(`Error loading ${activeTab} data:`, err);
@@ -163,9 +167,7 @@ const PlotDetailsPage = () => {
   const handleAddLog = () => {
     // Navigate to appropriate add form based on active tab
     switch (activeTab) {
-      case 'lifecycle':
-        navigate(`/plots/${id}/add-lifecycle`);
-        break;
+      
       case 'fertilizer':
         navigate(`/plots/${id}/add-fertilizer`);
         break;
@@ -262,7 +264,7 @@ const PlotDetailsPage = () => {
             <div className="text-sm">
               <span className="font-medium text-gray-800">Caretaker</span>
               <p className="text-gray-600">
-                {plot.caretaker?.name ? `${plot.caretaker.name} • ${plot.caretaker.contact_info || 'No contact info'}` : 'No caretaker assigned'}
+                {plot.caretaker_name ? `${plot.caretaker_name} ` : 'No caretaker assigned'}
               </p>
             </div>
           </div>
@@ -377,32 +379,6 @@ const PlotDetailsPage = () => {
               </div>
             ) : (
               <>
-                {/* Lifecycle Timeline Tab */}
-                {activeTab === "lifecycle" && (
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-gray-800">Lifecycle Timeline</h3>
-                      <button
-                        onClick={handleAddLog}
-                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                      >
-                        <Plus size={16} />
-                        Add Event
-                      </button>
-                    </div>
-                    
-                    <div className="text-center py-12">
-                      <Clock size={48} className="mx-auto text-gray-400 mb-4" />
-                      <p className="text-gray-500 mb-4">View full lifecycle timeline</p>
-                      <button
-                        onClick={handleViewTimeline}
-                        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                      >
-                        View Timeline
-                      </button>
-                    </div>
-                  </div>
-                )}
 
                 {/* Irrigation Log Tab */}
                 {activeTab === "irrigation" && (
