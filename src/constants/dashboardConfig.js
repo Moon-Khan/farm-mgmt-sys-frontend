@@ -40,14 +40,7 @@ export const ACTION_BUTTONS = [
     hoverColor: "hover:bg-blue-100",
     action: "water"
   },
-  {
-    label: "Monitor",
-    icon: "ChartIcon",
-    bgColor: "bg-green-50",
-    textColor: "text-green-700",
-    hoverColor: "hover:bg-green-100",
-    action: "track"
-  },
+
   {
     label: "Details",
     icon: "DetailsIcon",

@@ -5,6 +5,7 @@ import PlotCard from "../components/cards/PlotCard";
 import { useDashboardData } from "../hooks/useDashboardData";
 import { LocationIcon, PlantIcon, ThermometerIcon, RainIcon } from "../components/icons/ProfessionalIcons";
 import { useNavigate } from "react-router-dom";
+import { deletePlot } from "../services/plotsService";
 
 // Intelligent next task calculation based on plot state
 const calculateNextTask = (plot) => {
@@ -121,6 +122,22 @@ const Dashboard = () => {
   const handleMenuClick = (plotId) => {
     console.log(`Menu clicked for plot ${plotId}`);
     // TODO: Show plot options menu
+  };
+
+  const handleDeletePlot = async (plotId) => {
+    try {
+      const result = await deletePlot(plotId);
+      if (result?.success) {
+        // Refresh the data to remove the deleted plot from the list
+        refreshData();
+      } else {
+        console.error('Failed to delete plot:', result?.message);
+        alert('Failed to delete plot. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error deleting plot:', error);
+      alert('Failed to delete plot. Please try again.');
+    }
   };
 
   const handleAddPlot = () => {
@@ -267,16 +284,20 @@ const Dashboard = () => {
             plots.map((plot) => (
               <PlotCard
                 key={plot.id}
+                id={plot.id}
                 name={plot.name}
                 acres={parseFloat(plot.acreage)}
                 crop={plot.current_crop?.name || "N/A"}
-                caretaker={plot.caretaker?.name || "N/A"}
+                caretaker={plot.caretaker_name || "N/A"}
                 status={plot.status}
                 nextTask={calculateNextTask(plot)}
                 onWater={() => handleWater(plot.id)}
                 onTrack={() => handleTrack(plot.id)}
                 onDetails={() => handleDetails(plot.id)}
                 onMenuClick={() => handleMenuClick(plot.id)}
+                onDelete={handleDeletePlot}
+                lastActivity={plot.updatedAt}
+                daysSincePlanted={plot.daysSincePlanted}
               />
             ))
           ) : (

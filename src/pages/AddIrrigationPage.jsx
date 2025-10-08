@@ -3,19 +3,16 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { fetchPlotById } from "../services/plotsService";
 import { createIrrigation } from "../services/irrigationService";
-import { fetchCrops } from "../services/cropService";
 
 const AddIrrigationPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  
+
   const [plot, setPlot] = useState(null);
-  const [crops, setCrops] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  
+
   const [formData, setFormData] = useState({
-    crop_id: "",
     quantity: "",
     date: new Date().toISOString().split('T')[0]
   });
@@ -33,24 +30,13 @@ const AddIrrigationPage = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [plotRes, cropsRes] = await Promise.all([
-          fetchPlotById(id),
-          fetchCrops()
-        ]);
-        
+        const plotRes = await fetchPlotById(id);
+
         if (plotRes?.success && plotRes?.data) {
           setPlot(plotRes.data);
         }
-        
-        if (cropsRes?.success && cropsRes?.data) {
-          setCrops(cropsRes.data);
-          // Set first crop as default if available
-          if (cropsRes.data.length > 0) {
-            setFormData(prev => ({ ...prev, crop_id: cropsRes.data[0].id.toString() }));
-          }
-        }
       } catch (err) {
-        console.error("Error loading data:", err);
+        console.error("Error loading plot data:", err);
       } finally {
         setLoading(false);
       }
@@ -76,21 +62,17 @@ const AddIrrigationPage = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    
-    if (!formData.crop_id) {
-      newErrors.crop_id = "Crop is required";
-    }
-    
+
     if (!formData.quantity.trim()) {
       newErrors.quantity = "Water quantity is required";
     } else if (isNaN(parseFloat(formData.quantity))) {
       newErrors.quantity = "Quantity must be a valid number";
     }
-    
+
     if (!formData.date) {
       newErrors.date = "Date is required";
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -102,9 +84,8 @@ const AddIrrigationPage = () => {
     try {
       const irrigationData = {
         plot_id: parseInt(id),
-        crop_id: parseInt(formData.crop_id),
         quantity: parseFloat(formData.quantity),
-        date: formData.date
+        date: new Date(formData.date) // Convert string to Date object
       };
 
       const result = await createIrrigation(irrigationData);
@@ -152,31 +133,6 @@ const AddIrrigationPage = () => {
       <div className="flex justify-center p-6">
         <div className="w-full max-w-3xl bg-white rounded-xl shadow p-6">
           <form className="flex flex-col gap-4">
-            {/* Crop Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Crop *
-              </label>
-              <select
-                name="crop_id"
-                value={formData.crop_id}
-                onChange={handleInputChange}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                  errors.crop_id ? "border-red-500" : "border-gray-300"
-                }`}
-              >
-                <option value="">Select a crop</option>
-                {crops.map((crop) => (
-                  <option key={crop.id} value={crop.id}>
-                    {crop.name}
-                  </option>
-                ))}
-              </select>
-              {errors.crop_id && (
-                <p className="text-red-500 text-sm mt-1">{errors.crop_id}</p>
-              )}
-            </div>
-
             {/* Quantity */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
