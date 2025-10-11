@@ -38,27 +38,6 @@ const TYPE_META = {
   },
 };
 
-function priorityFor(reminder) {
-  // Derive a simple priority: within 2 days -> high, within 5 -> medium, else low
-  const now = new Date();
-  const due = new Date(reminder.due_date);
-  const diffDays = Math.ceil((due - now) / (1000 * 60 * 60 * 24));
-  if (diffDays <= 2) return "high";
-  if (diffDays <= 5) return "medium";
-  return "low";
-}
-
-function badgeClasses(priority) {
-  switch (priority) {
-    case "high":
-      return "bg-red-100 text-red-700";
-    case "medium":
-      return "bg-orange-100 text-orange-700";
-    default:
-      return "bg-green-100 text-green-700";
-  }
-}
-
 function formatDate(d) {
   const date = new Date(d);
   return date.toLocaleDateString(undefined, {
@@ -70,8 +49,8 @@ function formatDate(d) {
 
 const ToggleTabs = ({ active, onChange }) => {
   const tabs = [
-    { id: "week", label: "This Week" },
-    { id: "all", label: "All" },
+    { id: "pending", label: "Pending" },
+    { id: "completed", label: "Completed" },
   ];
   return (
     <div className="flex justify-center mt-3">
@@ -96,7 +75,6 @@ const ToggleTabs = ({ active, onChange }) => {
 
 const ReminderCard = ({ reminder, onDone }) => {
   const meta = TYPE_META[reminder.type] || {};
-  const priority = priorityFor(reminder);
   const locationText = `Plot #${reminder.plot_id}`;
 
   return (
@@ -117,8 +95,10 @@ const ReminderCard = ({ reminder, onDone }) => {
               {`Task for Crop #${reminder.crop_id}`}
             </p>
           </div>
-          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${badgeClasses(priority)}`}>
-            {priority}
+          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+            reminder.sent ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+          }`}>
+            {reminder.sent ? 'Completed' : 'Pending'}
           </span>
         </div>
 
@@ -135,7 +115,7 @@ const ReminderCard = ({ reminder, onDone }) => {
         </div>
       </div>
 
-      {/* Action */}
+      {/* Action - only show for pending reminders */}
       {!reminder.sent && (
         <button
           onClick={onDone}
@@ -151,7 +131,6 @@ const ReminderCard = ({ reminder, onDone }) => {
 
 const RemindersPage = () => {
   const navigate = useNavigate();
-  const [tab, setTab] = useState("week");
   const [loading, setLoading] = useState(true);
   const [reminders, setReminders] = useState([]);
   const [filterType, setFilterType] = useState(null); // null = all
@@ -159,14 +138,8 @@ const RemindersPage = () => {
   async function load() {
     setLoading(true);
     try {
-      if (tab === "week") {
-        const res = await fetchUpcomingReminders(7, filterType || undefined);
-        setReminders(res?.data || []);
-      } else {
-        const res = await fetchAllReminders(filterType || undefined);
-        const onlyDone = (res?.data || []).filter((r) => r.sent === true);
-        setReminders(onlyDone);
-      }
+      const res = await fetchAllReminders(filterType || undefined);
+      setReminders(res?.data || []);
     } catch (e) {
       console.error("Failed to load reminders", e);
       setReminders([]);
@@ -178,7 +151,7 @@ const RemindersPage = () => {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, filterType]);
+  }, [filterType]);
 
   const sorted = useMemo(() => {
     return [...reminders].sort(
@@ -201,7 +174,6 @@ const RemindersPage = () => {
       <div className="bg-white border-b border-gray-200 px-4 py-4">
         <h1 className="text-xl font-bold text-gray-900">Reminders</h1>
         <p className="text-sm text-gray-500">Stay on top of your farm tasks</p>
-        <ToggleTabs active={tab} onChange={setTab} />
       </div>
 
       {/* Body */}
