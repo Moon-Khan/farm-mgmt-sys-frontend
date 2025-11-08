@@ -13,21 +13,13 @@ const AddPesticidePage = () => {
   const [saving, setSaving] = useState(false);
 
   const [formData, setFormData] = useState({
-    pesticide_type: "insecticide",
+    pesticide_type: "",
     quantity: "",
     date: new Date().toISOString().split('T')[0],
     cost: ""
   });
 
   const [errors, setErrors] = useState({});
-
-  const pesticideTypes = [
-    { value: "insecticide", label: "Insecticide" },
-    { value: "herbicide", label: "Herbicide" },
-    { value: "fungicide", label: "Fungicide" },
-    { value: "organic", label: "Organic" },
-    { value: "biological", label: "Biological" }
-  ];
 
   useEffect(() => {
     const loadData = async () => {
@@ -144,24 +136,20 @@ const AddPesticidePage = () => {
         <div className="w-full max-w-3xl bg-white rounded-xl shadow p-6">
           <form className="flex flex-col gap-4">
             {/* Pesticide Type */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Pesticide Type
-              </label>
-              <select
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Pesticide Type *</label>
+              <input
+                type="text"
                 name="pesticide_type"
                 value={formData.pesticide_type}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              >
-                {pesticideTypes.map((type) => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
-                  </option>
-                ))}
-              </select>
+                placeholder="e.g., Glyphosate, Neem Oil, Copper Fungicide"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+              />
+              {errors.pesticide_type && (
+                <p className="mt-1 text-sm text-red-600">{errors.pesticide_type}</p>
+              )}
             </div>
-
 
             {/* Quantity */}
             <div>

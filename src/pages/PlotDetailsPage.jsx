@@ -236,13 +236,13 @@ const PlotDetailsPage = () => {
 
         {/* Current Crop Section */}
         <div className="bg-white rounded-lg shadow-sm border p-4 mb-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-start gap-3">
             <div className="p-2 bg-green-100 rounded-lg">
               <Leaf size={20} className="text-green-600" />
             </div>
-            <div>
-              <h2 className="font-semibold text-gray-800">Current Status</h2>
-              <div className="flex items-center gap-4 mt-1">
+            <div className="flex-1">
+              <h2 className="font-semibold text-gray-800 mb-2">Current Status</h2>
+              <div className="flex items-center gap-4 mb-2">
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                   plot.status === "growing" ? "bg-green-100 text-green-700" :
                   plot.status === "harvested" ? "bg-yellow-100 text-yellow-700" :
@@ -288,7 +288,31 @@ const PlotDetailsPage = () => {
               </p>
             </div>
           </div>
-
+          
+          {/* Seed Information */}
+          {(plot.seed_variety || plot.seed_quantity) && (
+            <div className="space-y-2">
+              {plot.seed_variety && (
+                <div className="flex items-center gap-2">
+                  <Sprout size={16} className="text-green-600" />
+                  <div className="text-sm">
+                    <span className="font-medium text-gray-800">Seed Variety</span>
+                    <p className="text-gray-600">{plot.seed_variety}</p>
+                  </div>
+                </div>
+              )}
+              {plot.seed_quantity && (
+                <div className="flex items-center gap-2">
+                  <Sprout size={16} className="text-green-600" />
+                  <div className="text-sm">
+                    <span className="font-medium text-gray-800">Seed Quantity</span>
+                    <p className="text-gray-600">{plot.seed_quantity} kg</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          
           <div className="mt-3">
             <h3 className="font-medium text-sm mb-1 text-gray-800">Notes</h3>
             <p className="text-gray-600 text-sm">{plot.notes || 'No notes available'}</p>

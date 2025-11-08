@@ -13,21 +13,13 @@ const AddFertilizerPage = () => {
   const [saving, setSaving] = useState(false);
 
   const [formData, setFormData] = useState({
-    fertilizer_type: "organic",
+    fertilizer_type: "",
     quantity: "",
     date: new Date().toISOString().split('T')[0],
     cost: ""
   });
 
   const [errors, setErrors] = useState({});
-
-  const fertilizerTypes = [
-    { value: "organic", label: "Organic" },
-    { value: "synthetic", label: "Synthetic" },
-    { value: "liquid", label: "Liquid" },
-    { value: "granular", label: "Granular" },
-    { value: "slow_release", label: "Slow Release" }
-  ];
 
   useEffect(() => {
     const loadData = async () => {
@@ -142,22 +134,19 @@ const AddFertilizerPage = () => {
         <div className="w-full max-w-3xl bg-white rounded-xl shadow p-6">
           <form className="flex flex-col gap-4">
             {/* Fertilizer Type */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Fertilizer Type
-              </label>
-              <select
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Fertilizer Type *</label>
+              <input
+                type="text"
                 name="fertilizer_type"
                 value={formData.fertilizer_type}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              >
-                {fertilizerTypes.map((type) => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
-                  </option>
-                ))}
-              </select>
+                placeholder="e.g., Urea, NPK, Compost"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+              />
+              {errors.fertilizer_type && (
+                <p className="mt-1 text-sm text-red-600">{errors.fertilizer_type}</p>
+              )}
             </div>
 
             {/* Quantity */}

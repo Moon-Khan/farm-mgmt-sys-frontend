@@ -23,46 +23,97 @@ const EditPlotPage = () => {
     status: "growing",
     planted_date: "",
     expected_harvest_date: "",
-    location: ""
+    seed_variety: "",
+    seed_quantity: ""
   });
 
   const [errors, setErrors] = useState({});
 
+  // Load crops
   useEffect(() => {
-    const loadData = async () => {
+    const loadCrops = async () => {
       try {
-        const [plotRes, cropsRes] = await Promise.all([
-          fetchPlotById(id),
-          fetchCrops()
-        ]);
-
-        console.log("===> cropsRes", cropsRes);
-
-        if (plotRes?.success && plotRes?.data) {
-          const plot = plotRes.data;
-          setFormData({
-            name: plot.name || "",
-            acreage: plot.acreage || "",
-            caretaker_name: plot.caretaker_name || "",
-            current_crop_id: plot.current_crop_id || "",
-            status: plot.status || "growing",
-            planted_date: plot.planted_date ? plot.planted_date.split("T")[0] : "",
-            expected_harvest_date: plot.expected_harvest_date ? plot.expected_harvest_date.split("T")[0] : "",
-            location: plot.location || ""
-          });
-        }
-
-        setCrops(cropsRes || []);
+        console.log('Loading crops...');
+        const cropsData = await fetchCrops();
+        console.log('Loaded crops:', cropsData);
         
+        if (cropsData && Array.isArray(cropsData)) {
+          setCrops(cropsData);
+        } else {
+          console.error('Invalid crops data format:', cropsData);
+          alert('Failed to load crops. Please try again.');
+        }
       } catch (err) {
-        console.error("Error loading data:", err);
+        console.error('Error loading crops:', err);
+        alert(`Error loading crops: ${err.message || 'Please try again.'}`);
       } finally {
-        setLoading(false);
         setLoadingCrops(false);
       }
     };
 
-    loadData();
+    loadCrops();
+  }, []);
+
+  // Load plot data
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        console.log('Loading plot data for ID:', id);
+        const response = await fetchPlotById(id);
+        console.log('API Response:', response);
+        
+        // The API response has the structure: { success: true, data: { ...plotData } }
+        if (response && response.success && response.data) {
+          const plotData = response.data;
+          console.log('Plot data:', plotData);
+          
+          // Format dates
+          const formatDate = (dateString) => {
+            if (!dateString) return '';
+            try {
+              const date = new Date(dateString);
+              return date.toISOString().split('T')[0];
+            } catch (e) {
+              console.error('Error formatting date:', dateString, e);
+              return '';
+            }
+          };
+          
+          const formData = {
+            name: plotData.name || '',
+            acreage: plotData.acreage || '',
+            caretaker_name: plotData.caretaker_name || '',
+            current_crop_id: plotData.current_crop_id || '',
+            status: plotData.status || 'planting',
+            planted_date: formatDate(plotData.planted_date),
+            expected_harvest_date: formatDate(plotData.expected_harvest_date),
+            notes: plotData.notes || '',
+            seed_variety: plotData.seed_variety || '',
+            seed_quantity: plotData.seed_quantity !== null && plotData.seed_quantity !== undefined 
+              ? String(plotData.seed_quantity)
+              : ''
+          };
+          
+          console.log('Setting form data:', formData);
+          setFormData(formData);
+        } else {
+          console.error('No data received from API:', response);
+          alert(`Failed to load plot data: ${response?.message || 'Unknown error'}`);
+        }
+      } catch (err) {
+        console.error("Error loading plot data:", err);
+        alert(`Error loading plot data: ${err.message || 'Please try again.'}`);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      loadData();
+    } else {
+      console.error('No plot ID provided');
+      setLoading(false);
+    }
   }, [id]);
 
   // Organize crops into categories for UI display
@@ -188,15 +239,37 @@ const EditPlotPage = () => {
   };
 
   const handleSave = async () => {
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      console.log('Form validation failed');
+      return;
+    }
     
     setSaving(true);
     try {
-      const result = await updatePlot(id, formData);
+      // Prepare data for submission
+      const submissionData = {
+        name: formData.name,
+        acreage: formData.acreage,
+        caretaker_name: formData.caretaker_name,
+        current_crop_id: formData.current_crop_id,
+        status: formData.status,
+        planted_date: formData.planted_date || null,
+        expected_harvest_date: formData.expected_harvest_date || null,
+        notes: formData.notes || null,
+        // Handle seed fields
+        seed_variety: formData.seed_variety?.trim() || null,
+        seed_quantity: formData.seed_quantity ? parseFloat(formData.seed_quantity) : null
+      };
+      
+      console.log('Submitting data:', submissionData); // Debug log
+      const result = await updatePlot(id, submissionData);
+      
       if (result?.success) {
+        console.log('Update successful, navigating to plot details');
         navigate(`/plots/${id}`);
       } else {
-        alert("Failed to update plot. Please try again.");
+        console.error('Update failed:', result?.message || 'Unknown error');
+        alert(`Failed to update plot: ${result?.message || 'Please try again.'}`);
       }
     } catch (err) {
       console.error("Error updating plot:", err);
@@ -419,6 +492,33 @@ const EditPlotPage = () => {
                   </div>
                 </div>
               )}
+
+              {/* Seed Variety */}
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Seed Variety</label>
+                <input
+                  type="text"
+                  name="seed_variety"
+                  value={formData.seed_variety}
+                  onChange={handleInputChange}
+                  placeholder="Enter seed variety (optional)"
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                />
+              </div>
+
+              {/* Seed Quantity */}
+              <div className="mt-3">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Seed Quantity (kg)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  name="seed_quantity"
+                  value={formData.seed_quantity}
+                  onChange={handleInputChange}
+                  placeholder="Enter seed quantity (optional)"
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -464,6 +564,7 @@ const EditPlotPage = () => {
               )}
             </div>
           </div>
+
         </div>
       </div>
     </div>
