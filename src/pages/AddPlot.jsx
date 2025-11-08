@@ -15,6 +15,8 @@ const AddPlot = () => {
     status: "planting",
     planted_date: "",
     expected_harvest_date: "",
+    seed_variety: "",
+    seed_quantity: "",
   });
 
   const [loadingCrops, setLoadingCrops] = useState(true);
@@ -185,6 +187,9 @@ const AddPlot = () => {
       const submitData = {
         ...formData,
         caretaker_name: formData.caretaker_name, // Send caretaker_name as expected by backend
+        // Ensure seed fields are properly included
+        seed_variety: formData.seed_variety || null,
+        seed_quantity: formData.seed_quantity || null
       };
 
       // Remove caretaker_id since we're using caretaker_name
@@ -412,6 +417,33 @@ const AddPlot = () => {
               <option value="growing">Growing</option>
               <option value="harvested">Harvested</option>
             </select>
+          </div>
+
+          {/* Seed Variety */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Seed Variety</label>
+            <input
+              type="text"
+              name="seed_variety"
+              value={formData.seed_variety}
+              onChange={handleChange}
+              placeholder="Enter seed variety (optional)"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+            />
+          </div>
+
+          {/* Seed Quantity */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Seed Quantity (kg)</label>
+            <input
+              type="number"
+              step="0.01"
+              name="seed_quantity"
+              value={formData.seed_quantity}
+              onChange={handleChange}
+              placeholder="Enter seed quantity (optional)"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+            />
           </div>
         </div>
 
