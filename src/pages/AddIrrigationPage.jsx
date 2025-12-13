@@ -13,8 +13,8 @@ const AddIrrigationPage = () => {
   const [saving, setSaving] = useState(false);
 
   const [formData, setFormData] = useState({
-    quantity: "",
-    date: new Date().toISOString().split('T')[0]
+    date: new Date().toISOString().split('T')[0],
+    notes: ""
   });
 
   const [errors, setErrors] = useState({});
@@ -63,12 +63,6 @@ const AddIrrigationPage = () => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.quantity.trim()) {
-      newErrors.quantity = "Water quantity is required";
-    } else if (isNaN(parseFloat(formData.quantity))) {
-      newErrors.quantity = "Quantity must be a valid number";
-    }
-
     if (!formData.date) {
       newErrors.date = "Date is required";
     }
@@ -84,8 +78,8 @@ const AddIrrigationPage = () => {
     try {
       const irrigationData = {
         plot_id: parseInt(id),
-        quantity: parseFloat(formData.quantity),
-        date: new Date(formData.date) // Convert string to Date object
+        date: new Date(formData.date), // Convert string to Date object
+        notes: formData.notes || null
       };
 
       const result = await createIrrigation(irrigationData);
@@ -123,7 +117,7 @@ const AddIrrigationPage = () => {
             <ArrowLeft size={20} className="text-gray-600" />
           </button>
           <div>
-            <h1 className="text-lg font-semibold text-gray-800">Add Irrigation Record</h1>
+            <h1 className="text-lg font-semibold text-gray-800">Record Watering</h1>
             <p className="text-sm text-gray-500">Record irrigation activity for {plot?.name}</p>
           </div>
         </div>
@@ -133,26 +127,19 @@ const AddIrrigationPage = () => {
       <div className="flex justify-center p-6">
         <div className="w-full max-w-3xl bg-white rounded-xl shadow p-6">
           <form className="flex flex-col gap-4">
-            {/* Quantity */}
+            {/* Notes */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Water Quantity (liters) *
+                Notes (Optional)
               </label>
-              <input
-                type="number"
-                name="quantity"
-                value={formData.quantity}
+              <textarea
+                name="notes"
+                value={formData.notes}
                 onChange={handleInputChange}
-                step="0.01"
-                min="0"
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                  errors.quantity ? "border-red-500" : "border-gray-300"
-                }`}
-                placeholder="e.g., 1000.5"
+                rows="3"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                placeholder="Add any notes about this watering..."
               />
-              {errors.quantity && (
-                <p className="text-red-500 text-sm mt-1">{errors.quantity}</p>
-              )}
             </div>
 
 
