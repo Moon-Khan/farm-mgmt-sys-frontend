@@ -408,13 +408,18 @@ const PlotDetailsPage = () => {
                 {activeTab === "irrigation" && (
                   <div>
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-gray-800">Irrigation Log</h3>
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-800">Watering History</h3>
+                        <p className="text-sm text-gray-500">
+                          Total waterings: {irrigations.length}
+                        </p>
+                      </div>
                       <button
                         onClick={handleAddLog}
                         className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                       >
                         <Plus size={16} />
-                        Add
+                        Record Watering
                       </button>
                     </div>
                     
@@ -422,14 +427,27 @@ const PlotDetailsPage = () => {
                       <div className="space-y-3">
                         {irrigations.map((irrigation, index) => (
                           <div key={index} className="bg-gray-50 rounded-lg p-3 border">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <p className="font-medium text-gray-800">
-                                  {irrigation.date ? new Date(irrigation.date).toLocaleDateString() : 'No date'}
-                                </p>
-                                <p className="text-sm text-gray-600">
-                                  Quantity: {irrigation.quantity}L
-                                </p>
+                            <div className="flex justify-between items-center">
+                              <div className="flex items-center gap-3">
+                                <div className="p-2 bg-blue-100 rounded-full">
+                                  <Droplets size={16} className="text-blue-600" />
+                                </div>
+                                <div>
+                                  <p className="font-medium text-gray-800">
+                                    Watered on {irrigation.date ? new Date(irrigation.date).toLocaleDateString('en-US', { 
+                                      year: 'numeric', 
+                                      month: 'short', 
+                                      day: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    }) : 'Unknown date'}
+                                  </p>
+                                  {irrigation.notes && (
+                                    <p className="text-sm text-gray-600 mt-1">
+                                      {irrigation.notes}
+                                    </p>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </div>
